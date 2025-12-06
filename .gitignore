@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual env
+venv/
+
+# Local DB (don't commit)
+dev.db
+*.sqlite3
+
+# Environment files
+.env
+.env.* 
+
+# Migrations - you WILL commit migrations/, but ignore local SQLite
