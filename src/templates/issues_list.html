@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Issue Log{% endblock %}
+
+{% block content %}
+<section class="card table-card">
+  <div class="actions-row" style="justify-content: space-between; margin-bottom: 18px">
+    <div>
+      <h1 class="page-title" style="margin: 0">Issue Log</h1>
+      <p class="subtitle" style="margin-bottom: 0">Track and resolve the latest room problems.</p>
+    </div>
+    <a class="btn small" href="{{ url_for('issues.report_issue') }}">Report New Issue</a>
+  </div>
+  {% if issues %}
+  <table>
+    <thead>
+      <tr>
+        <th>Room</th>
+        <th>Description</th>
+        <th>Reporter</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for issue in issues %}
+      <tr>
+        <td>{{ issue.room.building }} {{ issue.room.number }}</td>
+        <td class="truncate" title="{{ issue.description }}">{{ issue.description|truncate(80, True, '...') }}</td>
+        <td>{{ issue.reporter_id or '-' }}</td>
+        <td>
+          <span class="status-pill {{ 'status-new' if issue.status == 'New' else 'status-resolved' }}">{{ issue.status }}</span>
+        </td>
+        <td>{{ issue.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td><button class="btn secondary small" type="button" data-modal-target="issue-{{ issue.id }}">View</button></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="secondary-text">No issues logged yet.</p>
+  {% endif %}
+</section>
+
+{% for issue in issues %}
+<div class="modal" id="issue-{{ issue.id }}" aria-hidden="true">
+  <div class="modal-card">
+    <button class="modal-close" type="button" data-modal-close>&times;</button>
+    <h3 class="page-title" style="font-size: 1.5rem">{{ issue.room.building }} {{ issue.room.number }}</h3>
+    <div class="modal-grid">
+      <div>
+        <strong>Status</strong>
+        <p><span class="status-pill {{ 'status-new' if issue.status == 'New' else 'status-resolved' }}">{{ issue.status }}</span></p>
+      </div>
+      <div>
+        <strong>Reporter</strong>
+        <p>{{ issue.reporter_id or 'Not provided' }}</p>
+      </div>
+      <div>
+        <strong>Created</strong>
+        <p>{{ issue.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+      </div>
+      <div>
+        <strong>Description</strong>
+        <p class="description-text">{{ issue.description }}</p>
+      </div>
+    </div>
+    <form method="POST" action="{{ url_for('issues.resolve_issue', issue_id=issue.id) }}">
+      <button type="submit" class="btn" {% if issue.status == 'Resolved' %}disabled{% endif %}>Mark Resolved</button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const openButtons = document.querySelectorAll('[data-modal-target]');
+  const closeButtons = document.querySelectorAll('[data-modal-close]');
+  const modals = document.querySelectorAll('.modal');
+
+  openButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const modal = document.getElementById(btn.dataset.modalTarget);
+      if (modal) modal.classList.add('open');
+    });
+  });
+
+  closeButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      btn.closest('.modal').classList.remove('open');
+    });
+  });
+
+  modals.forEach((modal) => {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        modal.classList.remove('open');
+      }
+    });
+  });
+</script>
+{% endblock %}

@@ -17,4 +17,5 @@ dev.db
 
 instance/*.db
 instance/*.sqlite3
+uploads/
 

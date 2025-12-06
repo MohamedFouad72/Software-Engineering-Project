@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Import Schedules{% endblock %}
+
+{% block content %}
+<section class="card">
+  <h1 class="page-title">Upload Schedule</h1>
+  <p class="subtitle">We currently support flat files with the columns Room, Date, OpenTime and CloseTime.</p>
+  <form class="form-grid" method="POST" enctype="multipart/form-data">
+    <div>
+      <label for="uploaded_by">Uploaded By</label>
+      <input type="text" id="uploaded_by" name="uploaded_by" placeholder="Hall staff name" />
+    </div>
+    <div>
+      <label for="schedule_file">Schedule File (.csv or .xlsx)</label>
+      <input type="file" id="schedule_file" name="schedule_file" required />
+    </div>
+    <div>
+      <button type="submit">Import File</button>
+    </div>
+  </form>
+</section>
+
+<section class="card table-card">
+  <h2 class="page-title" style="font-size: 1.4rem">Recent Imports</h2>
+  {% if recent_imports %}
+  <table class="imports-table">
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Uploaded By</th>
+        <th>Uploaded At</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in recent_imports %}
+      <tr>
+        <td>{{ record.filename }}</td>
+        <td>{{ record.uploaded_by or '-' }}</td>
+        <td>{{ record.upload_time.strftime('%Y-%m-%d %H:%M') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="secondary-text">No imports yet. Be the first to upload.</p>
+  {% endif %}
+</section>
+{% endblock %}

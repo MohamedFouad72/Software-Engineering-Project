@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Report Issue{% endblock %}
+
+{% block content %}
+<section class="card">
+  <h1 class="page-title">Report an Issue</h1>
+  <p class="subtitle">Let maintenance know what went wrong inside a space so we can respond quickly.</p>
+  <form method="POST" class="form-grid">
+    <div>
+      <label for="reporter_id">Your Name or ID</label>
+      <input type="text" id="reporter_id" name="reporter_id" placeholder="Optional" />
+    </div>
+    <div>
+      <label for="room_id">Room</label>
+      <select id="room_id" name="room_id" required>
+        <option value="">Select a room</option>
+        {% for room in rooms %}
+        <option value="{{ room.id }}">{{ room.building }} {{ room.number }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="description">Describe the issue</label>
+      <textarea id="description" name="description" required></textarea>
+    </div>
+    <div>
+      <button type="submit">Submit Issue</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
