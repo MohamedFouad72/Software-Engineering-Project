@@ -14,3 +14,7 @@ dev.db
 .env.* 
 
 # Migrations - you WILL commit migrations/, but ignore local SQLite
+
+instance/*.db
+instance/*.sqlite3
+

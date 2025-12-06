@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Room Dashboard</title>
+    <style>
+      .room-card {
+        border: 1px solid #ccc;
+        padding: 10px;
+        width: 200px;
+        margin: 10px;
+        display: inline-block;
+        text-align: center;
+      }
+      .occupied {
+        background-color: #ffcccc;
+      }
+      .available {
+        background-color: #ccffcc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Campus Rooms</h1>
+    <div style="margin-bottom: 20px">
+      <a
+        href="/admin/rooms"
+        style="
+          padding: 10px 15px;
+          background-color: #007bff;
+          color: white;
+          text-decoration: none;
+          border-radius: 4px;
+        "
+        >⚙️ Manage Rooms</a
+      >
+    </div>
+    {% for room in rooms %}
+    <div class="room-card {{ room.status|lower }}">
+      <p>{{ room.building }} {{ room.number }}</p>
+      <p>Status: {{ room.status }}</p>
+      <a href="/rooms/{{ room.id }}/toggle">Toggle</a>
+    </div>
+    {% endfor %}
+  </body>
+</html>
