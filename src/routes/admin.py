@@ -1,16 +1,19 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from ..auth import admin_required
 from .. import db
 from ..models import Room
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 @admin_bp.route("/rooms")
+@admin_required
 def manage_rooms():
     """Display all rooms for management"""
     rooms = Room.query.all()
     return render_template("admin/manage_rooms.html", rooms=rooms)
 
 @admin_bp.route("/rooms/add", methods=["GET", "POST"])
+@admin_required
 def add_room():
     """Add a new room"""
     if request.method == "POST":
@@ -32,6 +35,7 @@ def add_room():
     return render_template("admin/add_room.html")
 
 @admin_bp.route("/rooms/<int:room_id>/edit", methods=["GET", "POST"])
+@admin_required
 def edit_room(room_id):
     """Edit an existing room"""
     room = Room.query.get_or_404(room_id)
@@ -48,6 +52,7 @@ def edit_room(room_id):
     return render_template("admin/edit_room.html", room=room)
 
 @admin_bp.route("/rooms/<int:room_id>/delete", methods=["POST"])
+@admin_required
 def delete_room(room_id):
     """Delete a room"""
     room = Room.query.get_or_404(room_id)

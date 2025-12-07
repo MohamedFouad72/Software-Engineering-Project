@@ -1,3 +1,4 @@
+from flask_login import login_required
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from .. import db
@@ -7,6 +8,7 @@ issues_bp = Blueprint("issues", __name__)
 
 
 @issues_bp.route("/issues/report", methods=["GET", "POST"])
+@login_required
 def report_issue():
     rooms = Room.query.order_by(Room.building.asc(), Room.number.asc()).all()
 
@@ -34,12 +36,14 @@ def report_issue():
 
 
 @issues_bp.route("/issues")
+@login_required
 def list_issues():
     issues = Issue.query.order_by(Issue.created_at.desc()).all()
     return render_template("issues_list.html", issues=issues)
 
 
 @issues_bp.route("/issues/<int:issue_id>/resolve", methods=["POST"])
+@login_required
 def resolve_issue(issue_id: int):
     issue = Issue.query.get_or_404(issue_id)
     issue.status = "Resolved"

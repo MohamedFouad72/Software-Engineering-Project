@@ -1,10 +1,12 @@
 from flask import Blueprint, redirect, url_for
+from flask_login import login_required
 from .. import db
 from ..models import Room
 
 rooms_bp = Blueprint("rooms", __name__)
 
 @rooms_bp.route("/rooms/<int:room_id>/toggle")
+@login_required
 def toggle(room_id):
     room = Room.query.get_or_404(room_id)
     room.toggle_status()

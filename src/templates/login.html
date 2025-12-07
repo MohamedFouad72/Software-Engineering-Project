@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login · Campus Rooms</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+    <style>
+      .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #00b4d1 0%, #0091a9 100%);
+        padding: 20px;
+      }
+      .login-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 40px;
+        width: min(450px, 100%);
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.15);
+      }
+      .login-title {
+        font-size: 2rem;
+        margin: 0 0 10px;
+        color: var(--text-dark);
+      }
+      .login-subtitle {
+        color: var(--muted);
+        margin-bottom: 32px;
+      }
+      .login-form {
+        display: grid;
+        gap: 20px;
+      }
+      .demo-info {
+        background: #f5f7fa;
+        padding: 16px;
+        border-radius: 10px;
+        margin-top: 24px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .demo-info strong {
+        color: var(--text-dark);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="login-card">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <div class="logo-slot" style="width: 60px; height: 60px; margin: 0 auto 16px;"></div>
+          <h1 class="login-title">Campus Rooms</h1>
+          <p class="login-subtitle">Sign in to manage room schedules</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div style="margin-bottom: 24px;">
+          {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="login-form">
+          <div>
+            <label for="email">Email Address</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              required 
+              placeholder="your.email@university.edu"
+              autofocus
+            />
+          </div>
+          <div>
+            <label for="password">Password</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              required 
+              placeholder="Enter your password"
+            />
+          </div>
+          <button type="submit" style="width: 100%; padding: 14px;">Sign In</button>
+        </form>
+
+        <div class="demo-info">
+          <strong>Demo Credentials:</strong><br>
+          Admin: admin@campus.edu / admin123<br>
+          Staff: staff@campus.edu / staff123
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

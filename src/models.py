@@ -1,5 +1,29 @@
 from datetime import datetime
-from . import db
+from flask_login import UserMixin
+from . import db, bcrypt
+
+class User(UserMixin, db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default="staff")
+    # Roles: admin, staff, ta_prof, maintenance
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def set_password(self, password):
+        """Hash and set password"""
+        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+
+    def check_password(self, password):
+        """Check if password matches hash"""
+        return bcrypt.check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f"<User {self.email} ({self.role})>"
+
 
 class Room(db.Model):
     __tablename__ = "rooms"
