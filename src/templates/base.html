@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Campus Room Manager{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+    {% block head %}{% endblock %}
+  </head>
+  <body class="app-shell">
+    <nav class="app-nav">
+      <div class="nav-left">
+        <div class="logo-slot" aria-label="Logo placeholder"></div>
+        <span class="brand">Campus Rooms</span>
+      </div>
+      <div class="nav-links">
+        <a href="{{ url_for('dashboard.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('imports.import_schedule') }}">Import</a>
+        <a href="{{ url_for('issues.list_issues') }}">Issues</a>
+        <a href="{{ url_for('admin.manage_rooms') }}">Manage Rooms</a>
+      </div>
+    </nav>
+
+    <main class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+      <p>Campus Room Schedule · Internal Tool</p>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
