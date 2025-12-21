@@ -22,3 +22,9 @@ jobs:
         run: |
           echo "Running Test Suite..."
           python run_tests.py
+        continue-on-error: false
+      
+      - name: Test Status
+        if: always()
+        run: |
+          echo "Test execution completed"

@@ -39,12 +39,16 @@ class MinimalTestResult(unittest.TextTestResult):
     def addError(self, test, err):
         super().addError(test, err)
         test_name = test._testMethodName.replace('test_', '').replace('_', ' ').title()
-        self.test_results.append((test_name, "Runtime error occurred", "❌ ERROR"))
+        # Print actual error for debugging
+        error_msg = str(err[1]) if err and len(err) > 1 else "Unknown error"
+        self.test_results.append((test_name, f"Error: {error_msg[:50]}", "❌ ERROR"))
     
     def addFailure(self, test, err):
         super().addFailure(test, err)
         test_name = test._testMethodName.replace('test_', '').replace('_', ' ').title()
-        self.test_results.append((test_name, "Assertion failed", "❌ FAIL"))
+        # Print actual error for debugging
+        error_msg = str(err[1]) if err and len(err) > 1 else "Assertion failed"
+        self.test_results.append((test_name, f"Failed: {error_msg[:50]}", "❌ FAIL"))
 
 
 class MinimalTestRunner(unittest.TextTestRunner):

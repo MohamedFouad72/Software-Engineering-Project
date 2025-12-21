@@ -50,8 +50,23 @@ class TestRoomScheduleApplication(unittest.TestCase):
         - Verify rooms are created or reused
         """
         with self.app.app_context():
-            # Load test CSV data
-            csv_path = os.path.join(os.path.dirname(__file__), "test_data.csv")
+            # Load test CSV data - handle both local and CI environments
+            test_dir = os.path.dirname(os.path.abspath(__file__))
+            csv_path = os.path.join(test_dir, "test_data.csv")
+            
+            # If not found, create it on the fly
+            if not os.path.exists(csv_path):
+                csv_content = """Room,Date,OpenTime,CloseTime
+Building1 101,2025-12-22,08:00:00,17:00:00
+Building1 102,2025-12-22,09:00:00,18:00:00
+Building2 201,2025-12-23,08:30:00,16:30:00
+Building2 202,2025-12-23,10:00:00,19:00:00
+Building3 301,2025-12-24,07:00:00,15:00:00
+Building3 302,2025-12-24,11:00:00,20:00:00
+Building1 103,2025-12-25,08:00:00,17:00:00
+Building2 203,2025-12-25,09:30:00,18:30:00"""
+                with open(csv_path, 'w') as f:
+                    f.write(csv_content)
             
             with open(csv_path, "rb") as f:
                 csv_data = f.read()
