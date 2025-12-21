@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Search Rooms{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1 class="page-title">Search & Filter Rooms</h1>
+    <p class="subtitle">Find rooms by building, number, status, or capacity</p>
+
+    <!-- Search Form -->
+    <form method="GET" action="{{ url_for('rooms.search') }}" class="search-form">
+        <!-- Keyword Search -->
+        <div class="search-bar">
+            <input type="text" 
+                   name="q" 
+                   value="{{ search_term or '' }}" 
+                   placeholder="Search by building or room number..."
+                   class="search-input">
+            <button type="submit" class="btn">Search</button>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-grid">
+            <!-- Building Filter -->
+            <div class="filter-item">
+                <label for="building">Building:</label>
+                <select name="building" id="building">
+                    <option value="">All Buildings</option>
+                    {% for bldg in buildings %}
+                    <option value="{{ bldg }}" 
+                            {% if current_building == bldg %}selected{% endif %}>
+                        {{ bldg }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="filter-item">
+                <label for="status">Status:</label>
+                <select name="status" id="status">
+                    <option value="">All Statuses</option>
+                    <option value="Available" 
+                            {% if current_status == 'Available' %}selected{% endif %}>
+                        Available
+                    </option>
+                    <option value="Occupied" 
+                            {% if current_status == 'Occupied' %}selected{% endif %}>
+                        Occupied
+                    </option>
+                </select>
+            </div>
+
+            <!-- Capacity Filters -->
+            <div class="filter-item">
+                <label for="capacity_min">Min Capacity:</label>
+                <input type="number" 
+                       name="capacity_min" 
+                       id="capacity_min" 
+                       min="0" 
+                       placeholder="e.g., 20">
+            </div>
+
+            <div class="filter-item">
+                <label for="capacity_max">Max Capacity:</label>
+                <input type="number" 
+                       name="capacity_max" 
+                       id="capacity_max" 
+                       min="0" 
+                       placeholder="e.g., 100">
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions-row">
+            <button type="submit" class="btn">Apply Filters</button>
+            <a href="{{ url_for('rooms.search') }}" class="btn secondary">Clear All</a>
+        </div>
+    </form>
+</section>
+
+<!-- Results Section -->
+<section class="card">
+    <div class="results-header">
+        <h2 class="section-title">Search Results</h2>
+        <span class="result-count">{{ count }} room(s) found</span>
+    </div>
+
+    {% if rooms %}
+    <div class="room-grid">
+        {% for room in rooms %}
+        <div class="room-card">
+            <div class="title">
+                {% if search_term %}
+                    {# Highlight search term #}
+                    {{ room.building|replace(search_term, '<mark>' + search_term + '</mark>')|safe }} 
+                    {{ room.number|replace(search_term, '<mark>' + search_term + '</mark>')|safe }}
+                {% else %}
+                    {{ room.building }} {{ room.number }}
+                {% endif %}
+            </div>
+            
+            <div class="room-details">
+                <span class="status-pill status-{{ room.status|lower }}">
+                    {{ room.status }}
+                </span>
+                {% if room.capacity %}
+                <span class="capacity-badge">
+                    Capacity: {{ room.capacity }}
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="actions-row">
+                <a href="{{ url_for('rooms.toggle', room_id=room.id) }}" 
+                   class="btn toggle-btn small">
+                    Toggle Status
+                </a>
+                {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('admin.edit_room', room_id=room.id) }}" 
+                   class="btn secondary small">
+                    Edit
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p class="secondary-text">No rooms match your search criteria.</p>
+        <p>Try adjusting your filters or <a href="{{ url_for('rooms.search') }}">clearing all filters</a>.</p>
+    </div>
+    {% endif %}
+</section>
+
+<style>
+.search-form {
+    margin-bottom: 32px;
+}
+
+.search-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.search-input {
+    flex: 1;
+    font-size: 1.05rem;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.result-count {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.section-title {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+mark {
+    background: #fff59d;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.capacity-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #e3f2fd;
+    color: #1976d2;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.room-details {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-state p {
+    margin: 10px 0;
+}
+</style>
+{% endblock %}

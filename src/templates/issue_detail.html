@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}Issue #{{ issue.id }} - Details{% endblock %}
+
+{% block content %}
+<div class="issue-detail-container">
+    <!-- Issue Header -->
+    <div class="card">
+        <div class="issue-header">
+            <div>
+                <h1 class="page-title">Issue #{{ issue.id }}</h1>
+                <p class="subtitle">
+                    Reported by {{ issue.reporter_id or 'Anonymous' }} on 
+                    {{ issue.created_at.strftime('%Y-%m-%d %H:%M') }}
+                </p>
+            </div>
+            <span class="status-pill {{ issue.get_status_badge_class() }}">
+                {{ issue.status }}
+            </span>
+        </div>
+
+        <!-- Issue Details Grid -->
+        <div class="issue-details-grid">
+            <div class="detail-item">
+                <strong>Room:</strong>
+                <span>{{ issue.room.building }} {{ issue.room.number }}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Priority:</strong>
+                <span class="priority-{{ issue.priority|lower }}">{{ issue.priority }}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Assigned To:</strong>
+                <span>
+                    {% if issue.assigned_user %}
+                        {{ issue.assigned_user.name }}
+                    {% else %}
+                        <em>Unassigned</em>
+                    {% endif %}
+                </span>
+            </div>
+            {% if issue.resolved_at %}
+            <div class="detail-item">
+                <strong>Resolved At:</strong>
+                <span>{{ issue.resolved_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="issue-description">
+            <strong>Description:</strong>
+            <p class="description-text">{{ issue.description }}</p>
+        </div>
+    </div>
+
+    <!-- Actions Section -->
+    {% if current_user.role in ['admin', 'staff', 'maintenance'] %}
+    <div class="card">
+        <h2 class="section-title">Actions</h2>
+        
+        <div class="actions-grid">
+            <!-- Assign Issue -->
+            {% if current_user.role in ['admin', 'staff'] %}
+            <form method="POST" action="{{ url_for('issues.assign_issue', issue_id=issue.id) }}" class="action-form">
+                <label for="assigned_to">Assign To:</label>
+                <select name="assigned_to" id="assigned_to" required>
+                    <option value="">Select user...</option>
+                    {% for user in staff_users %}
+                    <option value="{{ user.id }}" 
+                            {% if issue.assigned_to == user.id %}selected{% endif %}>
+                        {{ user.name }} ({{ user.role }})
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn">Assign</button>
+            </form>
+            {% endif %}
+
+            <!-- Update Status -->
+            <form method="POST" action="{{ url_for('issues.update_status', issue_id=issue.id) }}" class="action-form">
+                <label for="status">Update Status:</label>
+                <select name="status" id="status" required>
+                    <option value="New" {% if issue.status == 'New' %}selected{% endif %}>New</option>
+                    <option value="In Progress" {% if issue.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Resolved" {% if issue.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                </select>
+                <button type="submit" class="btn">Update Status</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Comments & Timeline -->
+    <div class="card">
+        <h2 class="section-title">Timeline & Comments</h2>
+        
+        <!-- Comments List -->
+        <div class="timeline">
+            {% if comments %}
+                {% for comment in comments %}
+                <div class="timeline-item timeline-{{ comment.comment_type }}">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <strong>
+                                {% if comment.user %}
+                                    {{ comment.user.name }}
+                                {% else %}
+                                    System
+                                {% endif %}
+                            </strong>
+                            <span class="timeline-time">
+                                {{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </span>
+                        </div>
+                        <div class="timeline-text">
+                            <span class="comment-type-badge comment-type-{{ comment.comment_type }}">
+                                {{ comment.comment_type|replace('_', ' ')|title }}
+                            </span>
+                            {{ comment.comment_text }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="secondary-text">No comments or activity yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Add Comment Form -->
+        <form method="POST" action="{{ url_for('issues.add_comment', issue_id=issue.id) }}" class="comment-form">
+            <label for="comment_text">Add Comment:</label>
+            <textarea name="comment_text" id="comment_text" rows="4" 
+                      placeholder="Type your comment here..." required></textarea>
+            <button type="submit" class="btn">Post Comment</button>
+        </form>
+    </div>
+
+    <!-- Back Button -->
+    <div class="actions-row">
+        <a href="{{ url_for('issues.list_issues') }}" class="btn secondary">← Back to Issues</a>
+    </div>
+</div>
+
+<style>
+.issue-detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.issue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.issue-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--surface-alt);
+    border-radius: 10px;
+}
+
+.detail-item strong {
+    display: block;
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.issue-description {
+    padding: 20px;
+    background: var(--surface-alt);
+    border-radius: 10px;
+    margin-top: 16px;
+}
+
+.priority-high { color: #d32f2f; font-weight: 600; }
+.priority-medium { color: #f57c00; font-weight: 600; }
+.priority-low { color: #388e3c; font-weight: 600; }
+
+.section-title {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.action-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.timeline {
+    position: relative;
+    margin: 30px 0;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 30px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 3px var(--surface-alt);
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 20px;
+    bottom: -30px;
+    width: 2px;
+    background: var(--border);
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-content {
+    background: var(--surface-alt);
+    padding: 16px;
+    border-radius: 10px;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.timeline-time {
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.comment-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.comment-type-comment { background: #e3f2fd; color: #1976d2; }
+.comment-type-status_change { background: #fff3e0; color: #f57c00; }
+.comment-type-assignment { background: #f3e5f5; color: #7b1fa2; }
+.comment-type-resolution { background: #e8f5e9; color: #388e3c; }
+
+.comment-form {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 2px solid var(--border);
+}
+
+.comment-form textarea {
+    width: 100%;
+}
+
+.status-progress {
+    background: #fff3e0;
+    color: #f57c00;
+}
+</style>
+{% endblock %}

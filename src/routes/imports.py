@@ -1,3 +1,4 @@
+from flask_login import login_required
 import os
 from datetime import datetime
 
@@ -10,14 +11,14 @@ from ..models import Room, Schedule, ScheduleImport
 
 imports_bp = Blueprint("imports", __name__)
 
-
+@login_required
 def _allowed_file(filename: str | None) -> bool:
     if not filename or "." not in filename:
         return False
     ext = filename.rsplit(".", 1)[1].lower()
     return ext in current_app.config.get("ALLOWED_EXTENSIONS", set())
 
-
+@login_required
 def _split_room_label(label: str | None) -> tuple[str | None, str | None]:
     label = (label or "").strip()
     if not label:
@@ -27,13 +28,13 @@ def _split_room_label(label: str | None) -> tuple[str | None, str | None]:
     number = parts[1] if len(parts) > 1 else "000"
     return building, number
 
-
+@login_required
 def _read_schedule_dataframe(file_path: str) -> pd.DataFrame:
     if file_path.lower().endswith(".csv"):
         return pd.read_csv(file_path)
     return pd.read_excel(file_path)
 
-
+@login_required
 def _parse_date(value):
     if pd.isna(value):
         return None
@@ -42,7 +43,7 @@ def _parse_date(value):
     except Exception:
         return None
 
-
+@login_required
 def _parse_time(value):
     if pd.isna(value):
         return None
@@ -53,6 +54,7 @@ def _parse_time(value):
 
 
 @imports_bp.route("/import", methods=["GET", "POST"])
+@login_required
 def import_schedule():
     recent_imports = ScheduleImport.query.order_by(ScheduleImport.upload_time.desc()).limit(5).all()
 
