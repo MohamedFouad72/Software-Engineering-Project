@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template
-from ..models import Room
+from flask import Blueprint, render_template, make_response
+from ..models import Room, Schedule  # <--- Added Schedule
 import csv
 import io
 from flask import make_response
@@ -14,28 +14,30 @@ def dashboard():
 
 # --- PASTE AT THE BOTTOM OF src/routes/dashboard.py ---
 
-@dashboard_bp.route('/export/schedules')  # <--- MAKE SURE '@bp' MATCHES THE OTHER ROUTES IN THIS FILE
+@dashboard_bp.route('/export/schedules')
 def export_schedules():
-    # 1. Setup the CSV in memory
+    # 1. Setup CSV in memory
     si = io.StringIO()
     cw = csv.writer(si)
     
-    # 2. Write the Header Row
-    cw.writerow(['Room', 'Date', 'Time', 'Status'])
+    # 2. Write Header Row
+    cw.writerow(['Building', 'Room', 'Date', 'Open Time', 'Close Time'])
 
-    # 3. Write Data (Using MOCK DATA to ensure it works instantly for submission)
-    # If you have your DB models working, you can query them instead.
-    # For now, this guarantees the file downloads without crashing.
-    data = [
-        ['C101', '2025-12-21', '09:00-11:00', 'Open'],
-        ['B205', '2025-12-21', '12:00-14:00', 'Closed'],
-        ['A105', '2025-12-21', '08:00-10:00', 'Open']
-    ]
-    
-    for row in data:
-        cw.writerow(row)
+    # 3. Query Real Data from Database
+    # We join with Room to ensure we only get valid schedules and order by date
+    schedules = Schedule.query.join(Room).order_by(Schedule.date.desc()).all()
 
-    # 4. Create the Response (The actual file download)
+    # 4. Loop through and write rows
+    for s in schedules:
+        cw.writerow([
+            s.room.building,       # From Room model
+            s.room.number,         # From Room model
+            s.date,                # From Schedule model
+            s.open_time,           # From Schedule model
+            s.close_time           # From Schedule model
+        ])
+
+    # 5. Create Response
     output = make_response(si.getvalue())
     output.headers["Content-Disposition"] = "attachment; filename=schedule_export.csv"
     output.headers["Content-type"] = "text/csv"
