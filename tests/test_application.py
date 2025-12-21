@@ -23,6 +23,11 @@ class TestRoomScheduleApplication(unittest.TestCase):
         self.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
         self.app.config["WTF_CSRF_ENABLED"] = False
         
+        # Ensure instance directory exists (for CI/CD compatibility)
+        import os
+        instance_dir = os.path.join(os.path.dirname(self.app.instance_path), "instance")
+        os.makedirs(instance_dir, exist_ok=True)
+        
         self.client = self.app.test_client()
         
         with self.app.app_context():
