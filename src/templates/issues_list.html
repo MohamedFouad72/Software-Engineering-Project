@@ -3,102 +3,206 @@
 {% block title %}Issue Log{% endblock %}
 
 {% block content %}
-<section class="card table-card">
-  <div class="actions-row" style="justify-content: space-between; margin-bottom: 18px">
-    <div>
-      <h1 class="page-title" style="margin: 0">Issue Log</h1>
-      <p class="subtitle" style="margin-bottom: 0">Track and resolve the latest room problems.</p>
+<section class="card">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Issue Tracking Log</h1>
+            <p class="subtitle">Track and manage all reported issues</p>
+        </div>
+        <a class="btn" href="{{ url_for('issues.report_issue') }}">Report New Issue</a>
     </div>
-    <a class="btn small" href="{{ url_for('issues.report_issue') }}">Report New Issue</a>
-  </div>
-  {% if issues %}
-  <table>
-    <thead>
-      <tr>
-        <th>Room</th>
-        <th>Description</th>
-        <th>Reporter</th>
-        <th>Status</th>
-        <th>Created</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for issue in issues %}
-      <tr>
-        <td>{{ issue.room.building }} {{ issue.room.number }}</td>
-        <td class="truncate" title="{{ issue.description }}">{{ issue.description|truncate(80, True, '...') }}</td>
-        <td>{{ issue.reporter_id or '-' }}</td>
-        <td>
-          <span class="status-pill {{ 'status-new' if issue.status == 'New' else 'status-resolved' }}">{{ issue.status }}</span>
-        </td>
-        <td>{{ issue.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-        <td><button class="btn secondary small" type="button" data-modal-target="issue-{{ issue.id }}">View</button></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="secondary-text">No issues logged yet.</p>
-  {% endif %}
+
+    <!-- Filters & Sort -->
+    <form method="GET" action="{{ url_for('issues.list_issues') }}" class="filters-form">
+        <div class="filters-grid">
+            <!-- Status Filter -->
+            <div class="filter-item">
+                <label for="status">Status:</label>
+                <select name="status" id="status" onchange="this.form.submit()">
+                    <option value="all" {% if not current_status or current_status == 'all' %}selected{% endif %}>All Statuses</option>
+                    <option value="New" {% if current_status == 'New' %}selected{% endif %}>New</option>
+                    <option value="In Progress" {% if current_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Resolved" {% if current_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                </select>
+            </div>
+
+            <!-- Room Filter -->
+            <div class="filter-item">
+                <label for="room_id">Room:</label>
+                <select name="room_id" id="room_id" onchange="this.form.submit()">
+                    <option value="">All Rooms</option>
+                    {% for room in rooms %}
+                    <option value="{{ room.id }}" 
+                            {% if current_room and current_room|int == room.id %}selected{% endif %}>
+                        {{ room.building }} {{ room.number }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Assigned Filter -->
+            <div class="filter-item">
+                <label for="assigned_to">Assigned To:</label>
+                <select name="assigned_to" id="assigned_to" onchange="this.form.submit()">
+                    <option value="">All</option>
+                    <option value="unassigned" 
+                            {% if current_assigned == 'unassigned' %}selected{% endif %}>
+                        Unassigned
+                    </option>
+                    {% for user in users %}
+                    <option value="{{ user.id }}" 
+                            {% if current_assigned and current_assigned|int == user.id %}selected{% endif %}>
+                        {{ user.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Sort -->
+            <div class="filter-item">
+                <label for="sort">Sort By:</label>
+                <select name="sort" id="sort" onchange="this.form.submit()">
+                    <option value="date" {% if current_sort == 'date' %}selected{% endif %}>Date (Newest)</option>
+                    <option value="priority" {% if current_sort == 'priority' %}selected{% endif %}>Priority</option>
+                    <option value="status" {% if current_sort == 'status' %}selected{% endif %}>Status</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="actions-row">
+            <a href="{{ url_for('issues.list_issues') }}" class="btn secondary small">Clear Filters</a>
+        </div>
+    </form>
 </section>
 
-{% for issue in issues %}
-<div class="modal" id="issue-{{ issue.id }}" aria-hidden="true">
-  <div class="modal-card">
-    <button class="modal-close" type="button" data-modal-close>&times;</button>
-    <h3 class="page-title" style="font-size: 1.5rem">{{ issue.room.building }} {{ issue.room.number }}</h3>
-    <div class="modal-grid">
-      <div>
-        <strong>Status</strong>
-        <p><span class="status-pill {{ 'status-new' if issue.status == 'New' else 'status-resolved' }}">{{ issue.status }}</span></p>
-      </div>
-      <div>
-        <strong>Reporter</strong>
-        <p>{{ issue.reporter_id or 'Not provided' }}</p>
-      </div>
-      <div>
-        <strong>Created</strong>
-        <p>{{ issue.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-      </div>
-      <div>
-        <strong>Description</strong>
-        <p class="description-text">{{ issue.description }}</p>
-      </div>
+<!-- Issues Table -->
+<section class="card table-card">
+    {% if issues %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Room</th>
+                <th>Description</th>
+                <th>Reporter</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Assigned To</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in issues %}
+            <tr>
+                <td><strong>#{{ issue.id }}</strong></td>
+                <td>{{ issue.room.building }} {{ issue.room.number }}</td>
+                <td class="truncate" title="{{ issue.description }}">
+                    {{ issue.description|truncate(50, True, '...') }}
+                </td>
+                <td>{{ issue.reporter_id or '-' }}</td>
+                <td>
+                    <span class="status-pill {{ issue.get_status_badge_class() }}">
+                        {{ issue.status }}
+                    </span>
+                </td>
+                <td>
+                    <span class="priority-badge priority-{{ issue.priority|lower }}">
+                        {{ issue.priority }}
+                    </span>
+                </td>
+                <td>
+                    {% if issue.assigned_user %}
+                        {{ issue.assigned_user.name }}
+                    {% else %}
+                        <em>Unassigned</em>
+                    {% endif %}
+                </td>
+                <td>{{ issue.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <a href="{{ url_for('issues.issue_detail', issue_id=issue.id) }}" 
+                       class="btn secondary small">
+                        View
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p class="secondary-text">No issues match your filters.</p>
+        <p>
+            <a href="{{ url_for('issues.list_issues') }}">Clear filters</a> or 
+            <a href="{{ url_for('issues.report_issue') }}">report a new issue</a>.
+        </p>
     </div>
-    <form method="POST" action="{{ url_for('issues.resolve_issue', issue_id=issue.id) }}">
-      <button type="submit" class="btn" {% if issue.status == 'Resolved' %}disabled{% endif %}>Mark Resolved</button>
-    </form>
-  </div>
-</div>
-{% endfor %}
-{% endblock %}
+    {% endif %}
+</section>
 
-{% block scripts %}
-<script>
-  const openButtons = document.querySelectorAll('[data-modal-target]');
-  const closeButtons = document.querySelectorAll('[data-modal-close]');
-  const modals = document.querySelectorAll('.modal');
+<style>
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
 
-  openButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const modal = document.getElementById(btn.dataset.modalTarget);
-      if (modal) modal.classList.add('open');
-    });
-  });
+.filters-form {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--surface-alt);
+    border-radius: 10px;
+}
 
-  closeButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      btn.closest('.modal').classList.remove('open');
-    });
-  });
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
 
-  modals.forEach((modal) => {
-    modal.addEventListener('click', (event) => {
-      if (event.target === modal) {
-        modal.classList.remove('open');
-      }
-    });
-  });
-</script>
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.priority-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.priority-high {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.priority-medium {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.priority-low {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-progress {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-state p {
+    margin: 10px 0;
+}
+</style>
 {% endblock %}

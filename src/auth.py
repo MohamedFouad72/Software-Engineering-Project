@@ -5,7 +5,7 @@ from flask_login import current_user
 def login_required_with_role(*roles):
     """
     Decorator to check if user is logged in and has required role
-    Usage: @login_required_with_role('admin', 'staff')
+    Usageeeeeee @login_required_with_role('admin', 'staff')
     """
     def decorator(f):
         @wraps(f)
