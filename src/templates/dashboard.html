@@ -1,31 +1,45 @@
-{% extends "base.html" %}
-
-{% block title %}Dashboard · Campus Rooms{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Dashboard · Campus Rooms{% endblock
+%} {% block content %}
 <section class="card">
   <h1 class="page-title">Live Room Snapshot</h1>
-  <p class="subtitle">Toggle a room when you hand it over or release it back to hall staff.</p>
+  <p class="subtitle">
+    Toggle a room when you hand it over or release it back to hall staff.
+  </p>
+
   <div class="actions-row" style="margin-bottom: 24px">
     <a class="btn" href="{{ url_for('admin.manage_rooms') }}">Manage Rooms</a>
-    <a class="btn secondary" href="{{ url_for('imports.import_schedule') }}">Import Schedules</a>
+    <a class="btn secondary" href="{{ url_for('imports.import_schedule') }}"
+      >Import Schedules</a
+    >
+    <a class="btn secondary" href="{{ url_for('dashboard.export_schedules') }}"
+      >Export to CSV</a
+    >
   </div>
+
   {% if rooms %}
   <div class="room-grid">
     {% for room in rooms %}
     <div class="room-card">
       <div class="title">{{ room.building }} {{ room.number }}</div>
       <div class="status">
-        <span class="status-pill {{ 'status-available' if room.status == 'Available' else 'status-occupied' }}">
+        <span
+          class="status-pill {{ 'status-available' if room.status == 'Available' else 'status-occupied' }}"
+        >
           {{ room.status }}
         </span>
       </div>
-      <a class="btn toggle-btn" href="{{ url_for('rooms.toggle', room_id=room.id) }}">Toggle Status</a>
+      <a
+        class="btn toggle-btn"
+        href="{{ url_for('rooms.toggle', room_id=room.id) }}"
+        >Toggle Status</a
+      >
     </div>
     {% endfor %}
   </div>
   {% else %}
-  <p class="secondary-text">No rooms yet. Import a schedule or create rooms from the admin area.</p>
+  <p class="secondary-text">
+    No rooms yet. Import a schedule or create rooms from the admin area.
+  </p>
   {% endif %}
 </section>
 {% endblock %}

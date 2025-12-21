@@ -1,8 +1,3 @@
-"""
-Flask Application Factory - Phase 5 Updated
-File: src/__init__.py
-"""
-
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -38,8 +33,8 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # Import ALL models (including new IssueComment)
-    from .models import Room, Schedule, ScheduleImport, Issue, IssueComment, User
+    # Import models
+    from .models import Room, Schedule, ScheduleImport, Issue
     
     # Register blueprints
     from .routes.auth import auth_bp
@@ -49,10 +44,8 @@ def create_app():
     from .routes.imports import imports_bp
     from .routes.issues import issues_bp
 
-    # Create upload folder if it doesn't exist
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-    # Register all blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(rooms_bp)

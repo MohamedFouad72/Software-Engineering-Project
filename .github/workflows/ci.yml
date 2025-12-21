@@ -1,0 +1,30 @@
+name: CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run Tests
+        run: |
+          echo "Running Test Suite..."
+          python run_tests.py
+        continue-on-error: false
+      
+      - name: Test Status
+        if: always()
+        run: |
+          echo "Test execution completed"
